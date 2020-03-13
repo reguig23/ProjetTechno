@@ -11,7 +11,8 @@ const Home = ()=>( /* Max tu ecrira la Page d'accueil ici avec une class pour to
   
 )
 /*Donc pour la Balise Link voici le lien où je l'ai trouve : https://openclassrooms.com/fr/courses/4555591-creer-un-petit-jeu-de-role-avec-reactjs/4555606-concevoir-le-layout-de-notre-application?status=waiting-for-publication
-J'arrive jamais à explique les concepts desole !!! Normalement tu as besoin de rien rajouter car j'ai tous fait(j'ai installer les dependances liées au Link Route Routeur )  a part les balises bien evidemment */
+J'arrive jamais à explique les concepts desole !!! Normalement tu as besoin de rien rajouter car j'ai tous fait(j'ai installer les dependances liées au Link Route Routeur )  a part les balises bien evidemment 
+Et pour repondre a de futur question (Donc React n'est pas sur une seul page?) ,la reponse est oui et non car on a besoin d'autre page car on la divise en plusieur app mais les modif ne se font que sur une page */
 
 class PageAccueil extends React.Component{
   

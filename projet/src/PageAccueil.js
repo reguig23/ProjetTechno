@@ -4,7 +4,10 @@ import Formulaire from './PageInscription';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom' /* Moyen de changer de page react*/ 
 
 class SeConnecter extends React.Component{ /* Regarde mon formulaire est fait pareil et trouve un moyen pour la fonction submit si c'est bon alors on change de page et si c'est faux alors on rajoute un texte en rouge iden ou mdp incorrect  */
-
+  
+  render(){
+    return (<h1>Max tu va reussir </h1>)
+  }
 }
 const Home = ()=>( /* Max tu ecrira la Page d'accueil ici avec une class pour ton formulaire pour les differents liens fait comme j'ai fait avec le link */
   <div>

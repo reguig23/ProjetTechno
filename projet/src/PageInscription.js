@@ -26,6 +26,7 @@ class Formulaire extends React.Component{
     }
     render(){
         return (
+        
             <div class="col-md-12 mb-6">
                 <div class="card">
                 <div class="card-body">

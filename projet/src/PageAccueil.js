@@ -22,7 +22,26 @@ state={
 
   connect=e => {
     /*MAX: C'est ici que je check que username et mdp soit bon, mais je vois pas trop comment faire encore (dans le sens: comment je cherche dans la bd si ok?) */
-    history.push('/PageInscription')/*MAX: voici une utilisation de history.js */
+    /*history.push('/PageInscription')MAX: voici une utilisation de history.js */
+    e.preventDefault();
+     
+    var request = new Request ('http://localhost:3000/prjt/naturegathering',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+
+    });
+
+    fetch(request)
+      .then(function(response){
+          response.json()
+          .then(function (data) {
+            console.log(data);
+          })
+      })
+      .catch(function(err){
+        console.log(err);
+      })
   }
 
   render(){
@@ -30,7 +49,7 @@ state={
       <div class="col-md-12 mb-6">
       <div class="card">
       <div class="card-body">
-        <form onSubmit={this.connect}>
+        <form onSubmit={this.connect.bind(this)}>
             <h1 class="text-center font-up font-bold deep-orange-text py-4">Connexion</h1>
             <div class="md-form">
                 <label htmlFor="pseudo"> Identifiant</label>

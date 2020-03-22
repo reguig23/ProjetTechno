@@ -22,8 +22,48 @@ app.use(function(request, response, next) {
   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
-app.post('/prjt/naturegathering',function(request,response)  {
-  console.log(request.body);
+app.post('/prjt/Connexion',function(request,response)  {
+  var pseudo = request.body.pseudo;
+  var mdp =  request.body.pwd;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      db.query(" Select pwd from nguser where pseudo=$1  ",[pseudo],(err,table)=>{
+        done();
+        if (err){
+          console.log("Erreur ici ")
+          return response.status(400).send(err);
+        }
+        else {
+          if (table.rows.length == 0){
+           
+            response.status(200).send({message : "Probleme Id" });
+           
+          }
+          else {
+            if ((String(table.rows[0].pwd).localeCompare(mdp))==0  ){
+              
+              response.status(200).send({message : "Connexion etablie "});
+              
+
+            }
+            else {
+              response.status(200).send({message : "Probleme mdp"});
+              
+              
+            }
+          }
+          db.end();
+          
+         
+          
+        }
+      })
+    }
+  });
+
 });
 app.post('/prjt/AjoutCompte',function(request,response)  {
   var pseud = request.body.pseudo;

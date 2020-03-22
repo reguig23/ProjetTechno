@@ -28,7 +28,6 @@ class Formulaire extends React.Component{
       body : JSON.stringify(this.state)
 
     });
-    console.log(request);
     fetch(request)
       .then(function(response){
           response.json()

@@ -10,7 +10,8 @@ class SeConnecter extends React.Component{
   
 state={
     pseudo : null,
-    pwd : null
+    pwd : null,
+    
   };
 
   change=e => {
@@ -18,14 +19,14 @@ state={
         [e.target.id] : e.target.value
         
     })
-}
+  }
 
   connect=e => {
     /*MAX: C'est ici que je  check que username et mdp soit bon, mais je vois pas trop comment faire encore (dans le sens: comment je cherche dans la bd si ok?) */
     /*history.push('/PageInscription')MAX: voici une utilisation de history.js */
     e.preventDefault();
      
-    var request = new Request ('http://localhost:2100/prjt/naturegathering',{
+    var request = new Request ('http://localhost:2100/prjt/Connexion',{
       method:'POST',
       headers : new Headers({"Content-type" : "application/json"}),
       body : JSON.stringify(this.state)
@@ -36,18 +37,19 @@ state={
       .then(function(response){
           response.json()
           .then(function (data) {
-            console.log(data);
-          })
+            var mess = document.getElementById("message"); 
+             mess.innerHTML = data.message;    
       })
       .catch(function (err){
         console.log(err);
       });
       
-  }
+  });
+}
 
   render(){
     return (
-      <div class="col-md-12 mb-6">
+      <div class="col-md-12 mb-6" >
       <div class="card">
       <div class="card-body">
         <form onSubmit={this.connect.bind(this)}>
@@ -60,6 +62,9 @@ state={
                 <label htmlFor="pwd"> Mdp</label>
                 <input type ="password" id="pwd" onChange={this.change}/>
             </div>
+            <div class="md-form" id = "message">
+              
+            </div>
             <div class="text-center">
                 <button class="btn btn-deep-orange" >Se Connecter<i class="fa fa-angle-double-right pl-2" aria-hidden="true"></i></button>
             </div>
@@ -69,6 +74,7 @@ state={
       </div>
       </div>
       </div>
+     
     )
   }
 }

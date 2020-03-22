@@ -21,17 +21,17 @@ state={
 }
 
   connect=e => {
-    /*MAX: C'est ici que je check que username et mdp soit bon, mais je vois pas trop comment faire encore (dans le sens: comment je cherche dans la bd si ok?) */
+    /*MAX: C'est ici que je  check que username et mdp soit bon, mais je vois pas trop comment faire encore (dans le sens: comment je cherche dans la bd si ok?) */
     /*history.push('/PageInscription')MAX: voici une utilisation de history.js */
     e.preventDefault();
      
-    var request = new Request ('http://localhost:3000/prjt/naturegathering',{
+    var request = new Request ('http://localhost:2100/prjt/naturegathering',{
       method:'POST',
       headers : new Headers({"Content-type" : "application/json"}),
       body : JSON.stringify(this.state)
 
     });
-
+    console.log(request);
     fetch(request)
       .then(function(response){
           response.json()
@@ -39,9 +39,10 @@ state={
             console.log(data);
           })
       })
-      .catch(function(err){
+      .catch(function (err){
         console.log(err);
-      })
+      });
+      
   }
 
   render(){

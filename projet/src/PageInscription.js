@@ -22,7 +22,24 @@ class Formulaire extends React.Component{
     }
     submit = e => {
         e.preventDefault();
-        console.log(this.state)
+        var request = new Request ('http://localhost:2100/prjt/AjoutCompte',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+
+    });
+    console.log(request);
+    fetch(request)
+      .then(function(response){
+          response.json()
+          .then(function (data) {
+            console.log(data.message);
+          })
+      })
+      .catch(function (err){
+        console.log(err);
+      });
+
     }
     render(){
         return (
@@ -30,7 +47,7 @@ class Formulaire extends React.Component{
             <div class="col-md-12 mb-6">
                 <div class="card">
                 <div class="card-body">
-                <form onSubmit={this.submit}>
+                <form onSubmit={this.submit.bind(this)}>
                     <h1 class="text-center font-up font-bold deep-orange-text py-4">Inscription</h1>
                     <div class="md-form">
                         <label htmlFor="pseudo"> Identifiant</label>

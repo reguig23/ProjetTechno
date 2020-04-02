@@ -5,8 +5,6 @@ import Sidebar from "react-sidebar";
 
 
 
-
-
 class Acceuil extends React.Component {
     constructor(props) {
       super(props);

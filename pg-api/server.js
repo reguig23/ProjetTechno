@@ -79,48 +79,17 @@ app.post('/prjt/AjoutCompte',function(request,response)  {
       return response.status(400).send(err);
     }
     else{
-      db.query("Select pseudo from nguser where  pseudo= $1",pseud,(err,table)=>{
-        done();
-        if (err){
-          return response.status(400).send(err);
-        }
-        else{
-          if (table.rows.length == 0){
-            db.query("Select pseudo from nguser where  mail= $1",email,(err,table)=>{
-              done();
-              if (err){
-                return response.status(400).send(err);
-              }
-              else{
-                if (table.rows.length == 0){
-                  db.query("Insert into nguser VALUES (nextval('incCodeU'),$1,$2,$3,$4,$5,false,$6,$7) ",[... values],(err,table)=>{
-                    done();
-                    if (err){
-                      return response.status(400).send(err);
-                    }
-                    else{
-                      response.status(200).send({ message : "Votre Inscription est Validé "});
-                      db.end();
-                    }
-                  })
-                }
-                else{
-                  response.status(200).send({ message : "email existe déja ! "});
-                  db.end();
-                }
-              }
-            })
+          db.query("Insert into nguser VALUES (nextval('incCodeU'),$1,$2,$3,$4,$5,false,$6,$7) ",[... values],(err,table)=>{
+          done();
+          if (err){
+            return response.status(400).send(err);
           }
           else{
-            response.status(200).send({message : "L'identifiant existe déja ! "});
-            db.end();
+              response.status(200).send({ message : "Votre Inscription est Validé "});
+              db.end();
           }
-        }
-
-      })
-
+        })
     }
-
   })
 });
   

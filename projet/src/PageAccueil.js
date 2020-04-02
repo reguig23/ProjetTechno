@@ -1,6 +1,7 @@
 import React from 'react';
 import './PageAccueil.css';
 import Formulaire from './PageInscription';
+import Accueil from './PageConnecte';
 import history from './history';/*MAX: J'ai créer un history.js, cela permet de changer de page sans utilisation de balise */
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom' /* Moyen de changer de page react*/ 
 
@@ -22,9 +23,9 @@ state={
 
   connect=e => {
     /*MAX: C'est ici que je  check que username et mdp soit bon, mais je vois pas trop comment faire encore (dans le sens: comment je cherche dans la bd si ok?) */
-    /*history.push('/PageInscription')MAX: voici une utilisation de history.js */
-    e.preventDefault();
-     
+    history.push('/pageConnecte');/*MAX: voici une utilisation de history.js */
+    //e.preventDefault() ;
+    /* 
     var request = new Request ('http://localhost:2100/prjt/naturegathering',{
       method:'POST',
       headers : new Headers({"Content-type" : "application/json"}),
@@ -41,7 +42,7 @@ state={
       })
       .catch(function (err){
         console.log(err);
-      });
+      });*/
       
   }
 
@@ -74,11 +75,12 @@ state={
 }
 const Home = ()=>( /* Max tu ecrira la Page d'accueil ici avec une class pour ton formulaire pour les differents liens fait comme j'ai fait avec le link */
   <div>
-    <h1>Je sais c'est pas très beau pour l'instant :(</h1>
+    <h1>Nature's Gathering</h1>
 
     <SeConnecter/>
     
     <Link className="btn" to={'/PageInscription'}>S'incrire</Link>
+    <Link className="btn" to={'/PageConnecte'}>HEYO</Link>
     
   </div>
   
@@ -96,6 +98,7 @@ class PageAccueil extends React.Component{
       <div>
         <Route exact path="/" component={Home}></Route>
         <Route exact path="/PageInscription" component={Formulaire}></Route>
+        <Route exact path="/PageConnecte" component={Accueil}></Route>
       </div>
     </Router>
     )

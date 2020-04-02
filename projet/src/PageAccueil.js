@@ -32,11 +32,11 @@ state={
       body : JSON.stringify(this.state)
 
     });
-    console.log(request);
     fetch(request)
       .then(function(response){
           response.json()
           .then(function (data) {
+            console.log(data);
             var mess = document.getElementById("message"); 
              mess.innerHTML = data.message;    
       })

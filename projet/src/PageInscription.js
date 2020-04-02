@@ -32,7 +32,8 @@ class Formulaire extends React.Component{
       .then(function(response){
           response.json()
           .then(function (data) {
-            console.log(data.message);
+            var mess = document.getElementById("message"); 
+            mess.innerHTML = data.message;
           })
       })
       .catch(function (err){
@@ -75,6 +76,9 @@ class Formulaire extends React.Component{
                     <div class="md-form">
                         <label htmlFor="country"> Pays</label>
                         <input type ="text" id="country" onChange={this.change}/>
+                    </div>
+                    <div class="md-form" id = "message">
+              
                     </div>
                     <div class="text-center">
                         <button class="btn btn-deep-orange">Suivant<i class="fa fa-angle-double-right pl-2" aria-hidden="true"></i></button>

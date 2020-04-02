@@ -38,27 +38,27 @@ app.post('/prjt/Connexion',function(request,response)  {
         }
         else {
           if (table.rows.length == 0){
-           
+
             response.status(200).send({message : "Probleme Id" });
-           
+
           }
           else {
             if ((String(table.rows[0].pwd).localeCompare(mdp))==0  ){
-              
+
               response.status(200).send({message : "Connexion etablie "});
-              
+
 
             }
             else {
               response.status(200).send({message : "Probleme mdp"});
-              
-              
+
+
             }
           }
           db.end();
-          
-         
-          
+
+
+
         }
       })
     }
@@ -75,23 +75,77 @@ app.post('/prjt/AjoutCompte',function(request,response)  {
   var pays = request.body.country;
   let values = [pseud,name,prename,email,mdp,codeP,pays];
   pool.connect((err,db,done) => {
-  if (err){
-    return response.status(400).send(err);
-  }
-  else{
-    db.query("Insert into nguser VALUES (nextval('incCodeU'),$1,$2,$3,$4,$5,false,$6,$7) ",[... values],(err,table)=>{
-      done();
-      if (err){
-        return response.status(400).send(err);
-      }
-      else {
-        return console.log("Data Insered ");
-        db.end();
-        response.status(200).send({message : "Votre Inscription est Validé "});
-      }
-    })
-  }
-});
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      db.query("Select pseudo from nguser where  pseudo= $1",pseud,(err,table)=>{
+        done();
+        if (err){
+          return response.status(400).send(err);
+        }
+        else{
+          if (table.rows.length == 0){
+            db.query("Select pseudo from nguser where  mail= $1",email,(err,table)=>{
+              done();
+              if (err){
+                return response.status(400).send(err);
+              }
+              else{
+                if (table.rows.length == 0){
+                  db.query("Insert into nguser VALUES (nextval('incCodeU'),$1,$2,$3,$4,$5,false,$6,$7) ",[... values],(err,table)=>{
+                    done();
+                    if (err){
+                      return response.status(400).send(err);
+                    }
+                    else{
+                      response.status(200).send({ message : "Votre Inscription est Validé "});
+                      db.end();
+                    }
+                  })
+                }
+                else{
+                  response.status(200).send({ message : "email existe déja ! "});
+                  db.end();
+                }
+              }
+            })
+          }
+          else{
+            response.status(200).send({message : "L'identifiant existe déja ! "});
+            db.end();
+          }
+        }
 
+      })
+
+    }
+
+  })
 });
+  
+  
+  
+  
+    
+      
+      
+      
+        
+          
+            
+            
+            
+             
+               
+                  
+
+       
+                  
+
+              
+     
+
+
+
 app.listen(port,()=> console.log("Port allume"));

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import PageAccueil from './PageAccueil';
-import Formulaire from './PageInscription';
+
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(<PageAccueil/>, document.getElementById('root'));

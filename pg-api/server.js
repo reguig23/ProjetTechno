@@ -30,7 +30,7 @@ app.post('/prjt/Connexion',function(request,response)  {
       return response.status(400).send(err);
     }
     else{
-      db.query(" Select pwd from nguser where pseudo=$1  ",[pseudo],(err,table)=>{
+      db.query(" Select codeu,pseudo,pwd from nguser where pseudo=$1  ",[pseudo],(err,table)=>{
         done();
         if (err){
           console.log("Erreur ici ")
@@ -39,18 +39,19 @@ app.post('/prjt/Connexion',function(request,response)  {
         else {
           if (table.rows.length == 0){
 
-            response.status(200).send({message : "Probleme Id" });
+            response.status(200).send({message : "pseudoError" });
 
           }
           else {
             if ((String(table.rows[0].pwd).localeCompare(mdp))==0  ){
-
-              response.status(200).send({message : "Connexion etablie "});
+     
+              response.status(200).send({ message : "Connexion etablie", pseudo : String(table.rows[0].pseudo), id : String(table.rows[0].codeu) });
+              
 
 
             }
             else {
-              response.status(200).send({message : "Probleme mdp"});
+              response.status(200).send({message : "pwdError"});
 
 
             }
@@ -67,6 +68,7 @@ app.post('/prjt/Connexion',function(request,response)  {
 });
 app.post('/prjt/AjoutCompte',function(request,response)  {
   var pseud = request.body.pseudo;
+  console.log(pseud);
   var name = request.body.nom;
   var prename = request.body.prenom;
   var email = request.body.email;
@@ -76,7 +78,7 @@ app.post('/prjt/AjoutCompte',function(request,response)  {
   let values = [pseud,name,prename,email,mdp,codeP,pays];
   pool.connect((err,db,done) => {
     if (err){
-      return response.status(400).send(err);
+      return response.status(400).send({error : err});
     }
     else{
           db.query("Insert into nguser VALUES (nextval('incCodeU'),$1,$2,$3,$4,$5,false,$6,$7) ",[... values],(err,table)=>{
@@ -95,26 +97,5 @@ app.post('/prjt/AjoutCompte',function(request,response)  {
   
   
   
-  
-    
-      
-      
-      
-        
-          
-            
-            
-            
-             
-               
-                  
-
-       
-                  
-
-              
-     
-
-
 
 app.listen(port,()=> console.log("Port allume"));

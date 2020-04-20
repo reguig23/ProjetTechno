@@ -1,7 +1,7 @@
 import React from 'react';
 import './PageAccueil.css';
 import history from './history';/*MAX: J'ai créer un history.js, cela permet de changer de page sans utilisation de balise */
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom' /* Moyen de changer de page react*/ 
+import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom' /* Moyen de changer de page react*/ 
 import PageConnecte from './PageConnecte';
 import Cookies from 'universal-cookie';
 
@@ -74,11 +74,11 @@ class SeConnecter extends React.Component{
           .then(function(response){
               response.json()
               .then(function (data) {
-                  var mess = document.getElementById("message");
+                 
               
                   if ((data.message.localeCompare("Connexion etablie"))==0){   
                     const cookies = new Cookies();
-                    cookies.set("user",data.pseudo+"_"+data.id[0], { path: '/PageConnecte'});         
+                    cookies.set("user",data.pseudo+" "+data.id, { path: '/PageConnecte'});         
                     history.push("/PageConnecte");
                     window.location.reload();
                   } 
@@ -481,15 +481,21 @@ J'arrive jamais à explique les concepts desole !!! Normalement tu as besoin de 
 Et pour repondre a de futur question (React n'est pas sur une seul page?) ,la reponse est oui et non car on a besoin d'autre page car on la divise en plusieur app mais les modif ne se font que sur une page (celle ou on est sans modif les autres ) */
 
 class PageAccueil extends React.Component{
-  
+
+    
   render(){
+    
+    
     return (
-      <Router>
-      <div>
-        <Route exact path="/PageAccueil" component={Home}></Route>
-        <Route exact path="/PageConnecte" component={PageConnecte}></Route>
-      </div>
-    </Router>
+        <Router>
+            <div>
+            <Route exact path="/PageAccueil" component={Home}></Route>
+            <Route exact path="/PageConnecte" component={PageConnecte}></Route>
+          </div>
+        </Router>
+         
+      
+     
     )
   }
 }

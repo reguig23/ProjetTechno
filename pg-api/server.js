@@ -68,7 +68,6 @@ app.post('/prjt/Connexion',function(request,response)  {
 });
 app.post('/prjt/AjoutCompte',function(request,response)  {
   var pseud = request.body.pseudo;
-  console.log(pseud);
   var name = request.body.nom;
   var prename = request.body.prenom;
   var email = request.body.email;
@@ -94,7 +93,54 @@ app.post('/prjt/AjoutCompte',function(request,response)  {
     }
   })
 });
-  
+
+app.post('/prjt/Listeami',function(request,response){
+  var pseud = request.body.id;
+  pool.connect((err,db,done) =>{
+    if(err){
+      return response.status(400).send({error : err});
+    }
+    else{
+      db.query("select codeu2 from friends where codeu1=$1",[pseud],(err,table)=>{
+        done();
+        if(err){
+          console.log("Erreur Ici")
+          return response.status(400).send(err);
+        }
+        else{
+          for(var i=0 ; i<table.rows.length;i++){
+            table.rows[i]=table.rows[i].codeu2.split(" ")[0] 
+          }
+
+          response.status(200).send({friends : table.rows});
+          
+        }
+      })
+    }
+  })
+
+});
+
+app.post('/prjt/Informationuser',function(request,response){
+  var id = request.body.id;
+  pool.connect((err,db,done)=>{
+    if(err){
+      return response.status(400).send({error : err});
+    }
+    else{
+      db.query("select * from nguser where codeu=$1",[id],(err,table)=>{
+        done();
+        if(err){
+          console.log("Erreur dans la bd");
+          return response.status(400).send(err);
+        }
+        else{
+          response.status(200).send({info : table.rows});
+        }
+      })
+    }
+  })
+});
   
   
 

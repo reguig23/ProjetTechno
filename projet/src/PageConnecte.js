@@ -8,11 +8,18 @@ class Event extends React.Component{
   constructor(props){
     super(props);
     this.state={
-      liste:[]
+      friends:this.props.friend,
+      id:this.props.id
     }
   }
+
+  
+   
   render(){
-    return(<h1>Liste Event</h1>);
+    
+    return(<div>
+      <h1>Liste Event</h1>
+    </div>);
   }
 }
 
@@ -65,16 +72,39 @@ class Participe extends React.Component{
   }
 }
 
+class CreeEvent extends React.Component{
+  constructor(props){
+    super(props);
+  }
+
+  render(){
+    return(<h1>Cree un Event</h1>);
+  }
+}
+
+class CreeArticle extends React.Component{
+  constructor(props){
+    super(props);
+  }
+
+  render(){
+    return(<h1>Cree un Article</h1>);
+  }
+}
+
 class Accueil extends React.Component{
   constructor(props){
     super(props);
     this.state = {
+      friend : this.props.friend,
       id:this.props.id,
       estEvent:true,
       estCarte:false,
       estAime:false,
       estArticle:false,
-      estParticpe:false
+      estParticpe:false,
+      estCreeEvent:false,
+      estCreeArticle:false
     }
   }
 
@@ -125,6 +155,35 @@ class Accueil extends React.Component{
     });
   }
 
+  passCev(){
+    if (this.state.estCreeEvent){
+      this.setState({
+        estCreeEvent:false
+      });
+    }
+    else{
+      this.setState({
+        estCreeEvent:true,
+        estCreeArticle:false
+      });
+    }
+
+  }
+
+  passCAr(){
+    if (this.state.estCreeArticle){
+      this.setState({
+        estCreeArticle:false
+      });
+    }
+    else{
+      this.setState({
+        estCreeEvent:false,
+        estCreeArticle:true
+      });
+    }
+  }
+
   render(){
    
 
@@ -132,22 +191,25 @@ class Accueil extends React.Component{
     <div>
         <h1>Accueil</h1>
         <input type="text" placeholder="Recherche tag"/>
-        <nav class="navbar navbar-inverse">
-          <ul class="nav navbar-nav">
-              <div class="container-fluid">
-              <button class="btn btn-primary navbar-btn" onClick={this.passEvent.bind(this)}>Crée Event</button>
-                <button class="btn btn-primary navbar-btn" onClick={this.passArticle.bind(this)}> Crée Article</button>
-                <button class="btn btn-link navbar-btn" onClick={this.passEvent.bind(this)}>Event</button>
-                <button class="btn btn-link navbar-btn" onClick={this.passArticle.bind(this)}>Article</button>
-                <button class="btn btn-link navbar-btn" onClick={this.passParticipe.bind(this)}>Je participe</button>
-                <button class="btn btn-link navbar-btn" onClick={this.passAime.bind(this)}>J'aime</button>
-                <button class="btn btn-link navbar-btn" onClick={this.passCarte.bind(this)}>Carte</button>
+        <nav className="navbar navbar-inverse">
+          <ul className="nav navbar-nav">
+              <div className="container-fluid">
+              <button className="btn btn-primary navbar-btn" onClick={this.passCev.bind(this)}>Crée Event</button>
+                <button className="btn btn-primary navbar-btn" onClick={this.passCAr.bind(this)}> Crée Article</button>
+                <button className="btn btn-link navbar-btn" onClick={this.passEvent.bind(this)}>Event</button>
+                <button className="btn btn-link navbar-btn" onClick={this.passArticle.bind(this)}>Article</button>
+                <button className="btn btn-link navbar-btn" onClick={this.passParticipe.bind(this)}>Je participe</button>
+                <button className="btn btn-link navbar-btn" onClick={this.passAime.bind(this)}>J'aime</button>
+                <button className="btn btn-link navbar-btn" onClick={this.passCarte.bind(this)}>Carte</button>
               </div>
           </ul>
         </nav>
-
         <div>
-              {this.state.estEvent&& <Event id={this.state.id} />}
+              {this.state.estCreeEvent&& <CreeEvent id={this.state.id} />}
+              {this.state.estCreeArticle && <CreeArticle/>}
+        </div>
+        <div>
+              {this.state.estEvent&& <Event id={this.state.id} friend = {this.state.friend} />}
               {this.state.estCarte && <Carte/>}
               {this.state.estAime&& <Aime/>}
               {this.state.estArticle && <Article/>}
@@ -170,10 +232,54 @@ class Stat extends React.Component{
 class Param extends React.Component{
   constructor(props){
     super(props);
+    this.state={
+      id:this.props.id,
+      pseudo: null,
+      pwd : null,
+      nom  : null,
+      prenom : null,
+      mail : null,
+      country : null,
+      cp : null
+
+    }
   }
 
+  componentDidMount() {
+    var request = new Request ('http://localhost:2100/prjt/Informationuser',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+     fetch(request)
+    .then(function(response){
+      response.json()
+      .then(function(data){
+        self.setState({
+          pseudo: data.info[0].pseudo,
+          pwd : data.info[0].pwd,
+          nom  : data.info[0].nom,
+          prenom : data.info[0].prenom,
+          mail : data.info[0].mail,
+          country : data.info[0].country,
+          cp : data.info[0].cp
+          
+        });
+        
+      })
+
+    });
+   
+  }
+
+
+
   render(){
-    return (<h1>Parametre</h1>);
+    return (<div>
+        <h1>Parametre</h1>
+        <p>{this.state.pseudo}</p>
+    </div>);
   }
 }
 
@@ -181,6 +287,7 @@ class Menu extends React.Component {
     constructor(props) {
       super(props);
       this.state = {
+        friend : this.props.friend,
         EstStatistique : false,
         EstAccueil : true,
         EstParametre: false,
@@ -225,22 +332,22 @@ class Menu extends React.Component {
    
     render() {
       return (
-        <div class="container-fluid">
-          <div class="row">
-            <div class="col-sm-3" >
-              <nav class="nav flex-column">
-                <button type="button" class="btn btn-link" onClick={this.passAcc.bind(this)}>Accueil</button>
-                <button type="button" class="btn btn-link" onClick={this.passStat.bind(this)}>Statistique</button>
-                <button type="button" class="btn btn-link" onClick={this.passPara.bind(this)}>Parametre</button>
-                <button type="button" class="btn btn-link" onClick={this.deco.bind(this)}>deconnexion</button>
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-sm-3" >
+              <nav className="nav flex-column">
+                <button type="button" className="btn btn-link" onClick={this.passAcc.bind(this)}>Accueil</button>
+                <button type="button" className="btn btn-link" onClick={this.passStat.bind(this)}>Statistique</button>
+                <button type="button" className="btn btn-link" onClick={this.passPara.bind(this)}>Parametre</button>
+                <button type="button" className="btn btn-link" onClick={this.deco.bind(this)}>deconnexion</button>
               </nav>
             </div>
-            <div class = "col-md-6">
-              {this.state.EstAccueil && <Accueil id={this.state.id} />}
-              {this.state.EstStatistique && <Stat/>}
-              {this.state.EstParametre && <Param/>}
+            <div className = "col-md-6">
+              {this.state.EstAccueil && <Accueil id={this.state.id} friend = {this.state.friend} />}
+              {this.state.EstStatistique && <Stat id={this.state.id} />}
+              {this.state.EstParametre && <Param id = {this.state.id} />}
             </div>
-            <div class="col-sm-3">
+            <div className="col-sm-3">
                 <h1>Profil</h1>
             </div>
           </div>
@@ -258,6 +365,7 @@ class PageConnecte extends React.Component{
     try{
       const cookies = new Cookies();
       this.state={
+        liste:[],
         ident : cookies.get("user").split(" ")[0],
         id :cookies.get("user").split(" ")[1]
       }
@@ -270,9 +378,30 @@ class PageConnecte extends React.Component{
     }
     
   }
+
+  componentDidMount() {
+    var request = new Request ('http://localhost:2100/prjt/Listeami',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+     fetch(request)
+    .then(function(response){
+      response.json()
+      .then(function(data){
+        console.log(data.friends);
+        self.setState({liste: data.friends});
+        
+      })
+
+    });
+   
+  }
+
   render(){
     const affichemenu = ()=>{
-      return (<Menu name={this.state.ident} id={this.state.id}/>)
+      return (<Menu friend = {this.state.liste} name={this.state.ident} id={this.state.id}/>)
     }
     return(
       <Router>

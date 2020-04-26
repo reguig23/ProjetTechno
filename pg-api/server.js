@@ -131,7 +131,6 @@ app.post('/prjt/Informationuser',function(request,response){
       db.query("select * from nguser where codeu=$1",[id],(err,table)=>{
         done();
         if(err){
-          console.log("Erreur dans la bd");
           return response.status(400).send(err);
         }
         else{
@@ -141,6 +140,31 @@ app.post('/prjt/Informationuser',function(request,response){
     }
   })
 });
+
+app.post('/prjt/ModifTable',function(request,response){
+  var tb = request.body.table;
+  var new_data = request.body.new;
+  var id = request.body.id;
+  console.log(tb);
+  console.log(new_data);
+  console.log(id);
+  pool.connect((err,db,done)=>{
+    if(err){
+      return response.status(400).send({error : err});
+    }
+    else{
+      db.query("UPDATE nguser SET "+tb+"= $1 where codeu = $2  ",[new_data,id],(err,table)=>{
+        done();
+        if(err){
+          return response.status(400).send(err);
+        }
+        else{
+          response.status(200).send({message : true});
+        }
+      })
+    }
+  })
+})
   
   
 

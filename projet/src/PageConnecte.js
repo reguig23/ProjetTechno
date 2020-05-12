@@ -5,6 +5,7 @@ import Cookies from 'universal-cookie';
 import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 import { GoogleMap, withScriptjs, withGoogleMap, Marker } from 'react-google-maps';
 import Geocode from 'react-geocode';
+import { VictoryBar, VictoryChart, VictoryAxis, VictoryPie, VictoryLabel } from 'victory';
 
 class LisComEvent extends React.Component{
   constructor(props){
@@ -1370,16 +1371,272 @@ class Accueil extends React.Component{
     </div>);
   }
 }
-
 class Stat extends React.Component{
+
   constructor(props){
     super(props);
+    try{
+      const cookies = new Cookies();
+
+      this.state = {
+        ident : cookies.get("user").split(" ")[0],
+        id :cookies.get("user").split(" ")[1],
+        nbEvents : 0,
+        nbNews : 0,
+        mostLikedE : ["Rien",0],
+        mostLikedN : ["Rien",0],
+        likeTotalE : 0,
+        likeTotalN :0,
+        commentTotalE: 0,
+        commentTotalN: 0
+      }
+    }
+    catch(err){
+      history.push("/PageAccueil");
+      window.location.reload();    
+    }
+  }
+  
+  componentDidMount() {
+
+    const self = this;
+    //Requette news ///////////////////////////////////////////////////////////
+    var request = new Request ('http://localhost:2100/prjt/GetNbNews',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(self.state)
+    });
+
+    fetch(request)
+    .then(function(response){
+      response.json()
+      .then(function(data){
+        
+        self.setState({
+          nbNews : parseInt(data.nbNews)
+        })
+        //Requette events ///////////////////////////////////////////////////////////
+        var request = new Request ('http://localhost:2100/prjt/GetNbEvents',{
+          method:'POST',
+          headers : new Headers({"Content-type" : "application/json"}),
+          body : JSON.stringify(self.state)
+        });
+    
+        fetch(request)
+        .then(function(response){
+          response.json()
+          .then(function(data){
+
+            self.setState({
+              nbEvents : parseInt(data.nbEvents)
+            })
+            //Requette event le plus like ///////////////////////////////////////////////////////////
+            var request = new Request ('http://localhost:2100/prjt/GetMostLikedE',{
+              method:'POST',
+              headers : new Headers({"Content-type" : "application/json"}),
+              body : JSON.stringify(self.state)
+            });
+
+            fetch(request)
+            .then(function(response){
+              response.json()
+              .then(function(data){
+                self.setState({
+                  mostLikedE : [data.mostLikedEventN, parseInt(data.mostLikedEventL)]
+                })
+                //Requette News le plus like ///////////////////////////////////////////////////////////
+                var request = new Request ('http://localhost:2100/prjt/GetMostLikedN',{
+                  method:'POST',
+                  headers : new Headers({"Content-type" : "application/json"}),
+                  body : JSON.stringify(self.state)
+                });
+                fetch(request)
+                .then(function(response){
+                  response.json()
+                  .then(function(data){
+                    self.setState({
+                      mostLikedN : [data.mostLikedNewsN, parseInt(data.mostLikedNewsL)]
+                    })
+                    //Requette nb total de like par events ///////////////////////////////////////////////////////////
+                    var request = new Request ('http://localhost:2100/prjt/GetAllLikesE',{
+                      method:'POST',
+                      headers : new Headers({"Content-type" : "application/json"}),
+                      body : JSON.stringify(self.state)
+                    });
+                    fetch(request)
+                    .then(function(response){
+                      response.json()
+                      .then(function(data){
+                        self.setState({
+                          likeTotalE : parseInt(data.totalLikesE)
+                        })
+                      //Requette nb total de like par news ///////////////////////////////////////////////////////////
+                      var request = new Request ('http://localhost:2100/prjt/GetAllLikesN',{
+                        method:'POST',
+                        headers : new Headers({"Content-type" : "application/json"}),
+                        body : JSON.stringify(self.state)
+                      });
+                      fetch(request)
+                      .then(function(response){
+                        response.json()
+                        .then(function(data){
+                          self.setState({
+                            likeTotalN : parseInt(data.totalLikesN)
+                          })
+                          //Requette nb total de like par news ///////////////////////////////////////////////////////////
+                          var request = new Request ('http://localhost:2100/prjt/GetCommentTotalE',{
+                            method:'POST',
+                            headers : new Headers({"Content-type" : "application/json"}),
+                            body : JSON.stringify(self.state)
+                          });
+
+                          fetch(request)
+                          .then(function(response){
+                            response.json()
+                            .then(function(data){
+                              self.setState({
+                                commentTotalE : parseInt( data.totalCommentsE )
+                              })
+                               //Requette nb total de like par news ///////////////////////////////////////////////////////////
+                              var request = new Request ('http://localhost:2100/prjt/GetCommentTotalN',{
+                                method:'POST',
+                                headers : new Headers({"Content-type" : "application/json"}),
+                                body : JSON.stringify(self.state)
+                              });
+                              fetch(request)
+                              .then(function(response){
+                                response.json()
+                                .then(function(data){
+                                  self.setState({
+                                    commentTotalN : parseInt( data.totalCommentsN ) 
+                                  }, () => {
+                                    console.log("recup events:", self.state)
+                                  })
+
+                                })
+                                .catch(function(err){
+                                  console.log(err);
+                                })
+                              })
+
+                            })
+                            .catch(function(err){
+                              console.log(err);
+                            })
+                          })
+                        })
+                        .catch(function(err){
+                          console.log(err);
+                        })
+                      })
+                      })
+                      .catch(function(err){
+                        console.log(err);
+                      })
+                    })
+                  })
+                  .catch(function(err){
+                    console.log(err);
+                  })
+                })
+              })
+              .catch(function(err){
+                console.log(err);
+              })
+            })
+          })
+          .catch(function (err){
+            console.log(err);
+          });
+        });
+      })
+      .catch(function(err){
+        console.log(err);
+      })
+    })
   }
 
+
   render(){
-    return (<h1>Mes Statistique</h1>);
+
+    const likes = String ( this.state.likeTotalE + this.state.likeTotalN) + " likes!";
+    const comments = String ( this.state.commentTotalE + this.state.commentTotalN);
+    console.log(comments)
+
+    return (<div>
+      <h1>Statistique de {this.state.ident}</h1>
+      <VictoryChart
+          maxDomain={{ y: 10 }}
+          domainPadding={{ x: 150, y: [0, 20] }}
+      >
+      <VictoryBar
+        style={{
+          data: {
+            fill: ({ index }) => +index % 2 === 0  ? "tomato" : "orange",
+            stroke: "#FFFFFF",
+            strokeOpacity: 0.7,
+            strokeWidth: 3
+          }
+        }}
+        data = {[
+          {nom: "Events posté", nb: this.state.nbEvents},
+          {nom: "News posté", nb: this.state.nbNews}
+        ]}
+        x = "nom"
+        y = "nb"
+      ></VictoryBar>
+      </VictoryChart>
+
+      <h1>Event et News le plus like:</h1>
+      <VictoryChart
+          maxDomain={{ y: 25 }}
+          domainPadding={{ x: 150, y: [0, 20] }}
+      >
+      <VictoryBar
+              style={{
+                data: {
+                  fill: ({ index }) => +index % 2 === 0  ? "tomato" : "orange",
+                  stroke: "#000000",
+                  strokeOpacity: 0.1,
+                  strokeWidth: 3
+                }
+              }}
+        data = {[
+          {nom: this.state.mostLikedE[0], nb: this.state.mostLikedE[1]},
+          {nom: this.state.mostLikedN[0], nb: this.state.mostLikedN[1]}
+        ]}
+        x = "nom"
+        y = "nb"
+      ></VictoryBar>
+      </VictoryChart>
+      <h1>Vous avez posté {comments} commentaires</h1>
+      <h1>et vous avez reçu un total de ...</h1>
+      <svg viewBox="0 0 400 400">
+        <VictoryPie
+          colorScale={["tomato", "orange"]}
+          standalone={false}
+          width={300} height={300}
+          data={[
+            { x: "Events", y: this.state.likeTotalE }, { x: "News", y: this.state.likeTotalN }
+          ]}
+          innerRadius={68} labelRadius={100}
+          style={{ labels: { fontSize: 20} }}
+          
+        />
+        <VictoryLabel
+          textAnchor="middle"
+          style={{ fontSize: 20 }}
+          x={150} y={150}
+          text={likes}
+        />
+      </svg>
+      </div>
+      
+      
+      );
   }
 }
+
 class Modif extends React.Component{
   constructor(props){
     super(props);

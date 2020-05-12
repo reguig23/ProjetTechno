@@ -5,8 +5,8 @@ let pg = require("pg");
 const port = 2100;
 
 let pool = new pg.Pool({
-  port:5431,
-  password:'ninjiniÉ"&ÇÇ!',
+  port:5432,
+  password:'njinwezen12345njinwezen',
   database : 'naturegathering',
   max:10,
   host:"localhost",
@@ -22,6 +22,193 @@ app.use(function(request, response, next) {
   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+
+app.post('/prjt/GetNbEvents', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup du nombre d'events
+      db.query(" SELECT COUNT(codee) FROM EVENT WHERE creatorE = $1 ",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           response.status(200).send({ nbEvents : String (table.rows[0].count)})
+         }
+      })
+    }
+  });
+});
+
+app.post('/prjt/GetNbNews', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup du nombre de news
+      db.query("SELECT COUNT(coden) FROM NEWS WHERE creatorN = $1 ",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           response.status(200).send({ nbNews : String (table.rows[0].count)})
+         }
+      })
+    }
+  });
+});
+
+app.post('/prjt/GetMostLikedE', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup event le plus like
+      db.query("SELECT codee,like_event,nomE FROM EVENT NATURAL JOIN (SELECT codee,COUNT(*) AS like_event FROM LIKEE GROUP BY codee) AS code_event WHERE creatorE = $1 ORDER BY like_event DESC LIMIT 1;",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           try{
+            response.status(200).send({ mostLikedEventN : String(table.rows[0].nome), mostLikedEventL : String(table.rows[0].like_event)})
+           }
+           catch{
+            response.status(200).send({ mostLikedEventN : "Rien", mostLikedEventL : 0 })
+           }
+         }
+      })
+    }
+  });
+});
+
+app.post('/prjt/GetMostLikedN', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup news le plus like
+      db.query("SELECT coden,like_news, nomN FROM NEWS NATURAL JOIN (SELECT coden,COUNT(*) AS like_news FROM LIKEN GROUP BY coden) AS code_news WHERE creatorN = $1 ORDER BY like_news DESC LIMIT 1",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           try{
+            response.status(200).send({ mostLikedNewsN : String(table.rows[0].nomn), mostLikedNewsL : String(table.rows[0].like_news)})
+           }
+           catch{
+            response.status(200).send({ mostLikedNewsN : "Rien" , mostLikedNewsL : 0 })
+           }       
+         }
+      })
+    }
+  });
+});
+
+app.post('/prjt/GetAllLikesE', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup nb total de like pour events
+      db.query("SELECT COUNT(codeU) FROM EVENT NATURAL JOIN LIKEE WHERE creatorE = $1 ;",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           response.status(200).send({ totalLikesE : String(table.rows[0].count)})
+         }
+      })
+    }
+  });
+});
+
+app.post('/prjt/GetAllLikesN', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup nb total de like pour events
+      db.query("SELECT COUNT(codeU) FROM NEWS NATURAL JOIN LIKEN WHERE creatorN = $1 ",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           response.status(200).send({ totalLikesN : String(table.rows[0].count)})
+         }
+      })
+    }
+  });
+});
+
+app.post('/prjt/GetCommentTotalE', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup nb total de comments pour events
+      db.query("SELECT COUNT(commentaire) FROM COM NATURAL JOIN COMEVENT NATURAL JOIN NGUSER WHERE nguser.codeu = $1 ",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           response.status(200).send({ totalCommentsE : String( table.rows[0].count)})
+         }
+      })
+    }
+  });
+});
+
+app.post('/prjt/GetCommentTotalN', function(request,response) {
+  var id = request.body.id;
+  pool.connect((err,db,done) => {
+    if (err){
+      return response.status(400).send(err);
+    }
+    else{
+      //Recup nb total de comments pour news
+      db.query("SELECT COUNT(commentaire) FROM COM NATURAL JOIN COMNEWS NATURAL JOIN NGUSER WHERE nguser.codeu = $1 ",[id],(err,table)=>{
+        done();
+          if (err){
+            console.log(err)
+            return response.status(400).send(err);
+         }
+         else{
+           response.status(200).send({ totalCommentsN : String( table.rows[0].count)})
+         }
+      })
+    }
+  });
+});
+
 app.post('/prjt/Connexion',function(request,response)  {
   var pseudo = request.body.pseudo;
   var mdp =  request.body.pwd;

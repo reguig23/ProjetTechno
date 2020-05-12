@@ -489,7 +489,7 @@ class PageAccueil extends React.Component{
     return (
         <Router>
             <div>
-            <Route exact path="/PageAccueil" component={Home}></Route>
+            <Route exact path="/" component={Home}></Route>
             <Route exact path="/PageConnecte" component={PageConnecte}></Route>
           </div>
         </Router>

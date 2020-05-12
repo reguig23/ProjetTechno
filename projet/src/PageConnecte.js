@@ -3,26 +3,567 @@ import history from './history';
 import PageAccueil from './PageAccueil';
 import Cookies from 'universal-cookie';
 import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
+import { GoogleMap, withScriptjs, withGoogleMap, Marker } from 'react-google-maps';
+import Geocode from 'react-geocode';
 
+class LisComEvent extends React.Component{
+  constructor(props){
+    super(props)
+    this.state = {
+      idUtil : this.props.idUtil,
+      idEvent : this.props.idevent,
+      idComen : this.props.idCom,
+      pseudo : "",
+      decription : "",
+      date:"",
+      heure:""
+    }
+  }
+
+  componentDidMount(){
+    var request = new Request ('http://localhost:2100/prjt/LeComm',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+        .then(function(response){
+          response.json()
+        .then(function(data){
+         self.setState({
+          pseudo : data.info.pseudo,
+          description : data.info.commentaire,
+          date : data.info.datec.substring(0, 10).split(":")[0],
+          heure: data.info.heurec.split(".")[0]
+        }) 
+          
+        })
+    })
+
+  }
+
+  render(){
+    return (
+      <div className="media">
+          
+        
+          <div className="media-body">
+            <h4 className="media-heading user_name">{this.state.pseudo}</h4>
+              {this.state.description}
+              
+          </div>
+          <p className="pull-left"><small>{this.state.date}:{this.state.heure}</small></p>
+      </div>
+    )
+  }
+}
+
+class CommEvent extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      idUtil:this.props.idUtil,
+      id: this.props.id,
+      Commentaire : [],
+      nbCom : null,
+      write:"",
+      newCommId:""
+    }
+    
+  }
+  componentDidMount(){
+    var request = new Request ('http://localhost:2100/prjt/NbComm',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+        .then(function(response){
+          response.json()
+        .then(function(data){
+          self.setState({
+            nbCom : data.nbComment,
+            Commentaire: data.liste
+          }) 
+        })
+    })
+}
+
+  
+
+AjoutComm= e=>{
+  e.preventDefault() ;
+  var request = new Request ('http://localhost:2100/prjt/AjoutComm',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+        .then(function(response){
+          response.json()
+        .then(function(data){
+          if(data.message==1){
+            var request = new Request ('http://localhost:2100/prjt/IdComm',{
+              method:'POST',
+              headers : new Headers({"Content-type" : "application/json"}),
+              body : JSON.stringify(self.state)
+            });
+            fetch(request)
+                .then(function(response){
+                  response.json()
+                .then(function(data){
+                  self.setState({
+                    newCommId : data.message,
+                    
+                  }) 
+                  var request = new Request ('http://localhost:2100/prjt/AjoutEventComm',{
+                      method:'POST',
+                      headers : new Headers({"Content-type" : "application/json"}),
+                      body : JSON.stringify(self.state)
+                  });
+                  fetch(request)
+                      .then(function(response){
+                          response.json()
+                          .then(function(data){
+                            console.log(data);
+                            var request = new Request ('http://localhost:2100/prjt/NbComm',{
+                                method:'POST',
+                                headers : new Headers({"Content-type" : "application/json"}),
+                                body : JSON.stringify(self.state)
+                            });
+    
+                              fetch(request)
+                                .then(function(response){
+                                  response.json()
+                                  .then(function(data){
+                                    self.setState({
+                                        nbCom : data.nbComment,
+                                        Commentaire: data.liste
+                                    }) 
+                                  })
+                                })
+                          })
+                      })
+                    })
+                  })
+          }
+        })
+    })
+}
+
+change = e=>{
+  this.setState({
+    [e.target.id] : e.target.value
+})
+}
+  render(){
+    const listCommentaire =  this.state.Commentaire.map((number) =>
+        
+
+      <LisComEvent key ={+number[1]} idCom={number[1]} idUtil = {number[0]}  idevent={this.state.id} estUtil={(+number[0])==(+this.props.idUtil)} />
+    );
+    
+  
+    return ( 
+      <div >
+          <div >
+          <div >
+          <div className="page-header">
+          <h1> <small className="pull-right">{this.state.nbCom} comments</small> Comments </h1>
+          </div>
+          <div className="comments-list">
+            {listCommentaire}
+          </div>
+          <input id="write" type="text" name="Ecrire un commentaire" className="login-input" placeholder="Ecrire un commentaire" onChange={this.change.bind(this)} />
+          <button className="btn btn-link navbar-btn" onClick={this.AjoutComm.bind(this)}> Ajoute Commentaire</button>
+          </div>
+
+          </div>
+
+      </div>
+
+    )
+  }
+}
+class ListEvent extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      idUtil : this.props.name,
+      id :  this.props.id,
+      titre : "",
+      description : "",
+      date :"",
+      jour : "",
+      mois:"",
+      annee:"",
+      heure : "",
+      aime : 0,
+      aLike : null,
+      pasLike :null,
+      nbParticipe :null,
+      participe : null,
+      nbCom : null,
+      lescomm: null,
+      afficherComm:false
+    }
+  }
+  
+  componentDidMount(){
+    
+    var request = new Request ('http://localhost:2100/prjt/EvenParid',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+
+    const self = this;
+    fetch(request)
+      .then(function(response){
+        response.json()
+        .then(function(data){
+          var Tabmois = ["Jan","Fev","Mar","Avr","Mai","Juin","Jui","Aout","Sep","Oct","Nov","Dec"];
+          var debut = data.Titre.datee.substring(0, 10).split(":")[0];
+          var day=debut.split("-")[2];
+          var month = Tabmois[+debut.split("-")[1]-1];
+          var year = debut.split("-")[0];
+          var request = new Request ('http://localhost:2100/prjt/Nblike',{
+            method:'POST',
+            headers : new Headers({"Content-type" : "application/json"}),
+            body : JSON.stringify(self.state)
+          });
+          fetch(request)
+            .then(function(response){
+              response.json()
+                .then(function(data){
+                 self.setState({
+                   aime : data.nb,
+                   aLike : data.ALike,
+                   pasLike : ! data.ALike
+                 }) 
+                 var request = new Request ('http://localhost:2100/prjt/NbParticipant',{
+                    method:'POST',
+                    headers : new Headers({"Content-type" : "application/json"}),
+                    body : JSON.stringify(self.state)
+                  });
+                  fetch(request)
+                .then(function(response){
+                  response.json()
+                    .then(function(data){
+                     self.setState({
+                       nbParticipe:data.nb,
+                       participe : data.ALike
+                     }) 
+                     var request = new Request ('http://localhost:2100/prjt/NbComm',{
+                        method:'POST',
+                        headers : new Headers({"Content-type" : "application/json"}),
+                        body : JSON.stringify(self.state)
+                      });
+                      fetch(request)
+                          .then(function(response){
+                            response.json()
+                          .then(function(data){
+                            self.setState({
+                              nbCom : data.nbComment,
+                              lescomm : data.liste
+                            }) 
+                          })
+                      })
+                  })
+                })
+
+              })
+            })
+          self.setState({
+            titre : data.Titre.nome,
+            description : data.Titre.descriptione,  
+            jour : day,
+            mois : month,
+            date : debut,
+            annee:year,
+            date : debut
+          })
+            
+          
+        })
+      })
+      
+      
+  }
+
+  DislikeThis (){
+
+      var request = new Request ('http://localhost:2100/prjt/Delike',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+      });
+      const self = this;
+      fetch(request)
+        .then(function(response){
+            response.json()
+            .then(function(data){
+              
+              var request = new Request ('http://localhost:2100/prjt/Nblike',{
+                method:'POST',
+                headers : new Headers({"Content-type" : "application/json"}),
+                body : JSON.stringify(self.state)
+              });
+              
+              fetch(request)
+                .then(function(response){
+                  response.json()
+                    .then(function(data){
+                      var request = new Request ('http://localhost:2100/prjt/Delike2',{
+                        method:'POST',
+                        headers : new Headers({"Content-type" : "application/json"}),
+                        body : JSON.stringify(self.state)
+                        });
+                        fetch(request)
+                                .then(function(response){
+                                  response.json()
+                                  .then(function(data){
+                                    console.log(data); 
+                                  })
+                                })
+                     self.setState({
+                       aime : data.nb,
+                       aLike : false,
+                       pasLike : true
+                     }) 
+                  })
+                })
+                
+            })
+        }) 
+  }
+
+  likeThis(){
+    var request = new Request ('http://localhost:2100/prjt/Like',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+      });
+      const self = this;
+      fetch(request)
+        .then(function(response){
+            response.json()
+            .then(function(data){
+              
+              var request = new Request ('http://localhost:2100/prjt/Nblike',{
+                method:'POST',
+                headers : new Headers({"Content-type" : "application/json"}),
+                body : JSON.stringify(self.state)
+              });
+              
+              fetch(request)
+                .then(function(response){
+                  response.json()
+                    .then(function(data){
+                      var request = new Request ('http://localhost:2100/prjt/Like2',{
+                        method:'POST',
+                        headers : new Headers({"Content-type" : "application/json"}),
+                        body : JSON.stringify(self.state)
+                        });
+                        fetch(request)
+                                .then(function(response){
+                                  response.json()
+                                  .then(function(data){
+                                    console.log(data); 
+                                  })
+                                })
+                     self.setState({
+                       aime : data.nb,
+                       aLike : true,
+                       pasLike : false
+                      
+                     }) 
+                  })
+                })
+                
+            })
+        }) 
+
+  }
+  affichelesComm(){
+    this.setState({
+      afficherComm: ! this.state.afficherComm
+    })
+  }
+  Participethis(){
+    if(this.state.participe){
+      var request = new Request ('http://localhost:2100/prjt/JeparticipePas',{
+        method:'POST',
+        headers : new Headers({"Content-type" : "application/json"}),
+        body : JSON.stringify(this.state)
+        });
+        const self = this;
+        fetch(request)
+          .then(function(response){
+              response.json()
+              .then(function(data){
+                
+                var request = new Request ('http://localhost:2100/prjt/NbParticipant',{
+                  method:'POST',
+                  headers : new Headers({"Content-type" : "application/json"}),
+                  body : JSON.stringify(self.state)
+                });
+                
+                fetch(request)
+                  .then(function(response){
+                    response.json()
+                      .then(function(data){
+                       self.setState({
+                         nbParticipe : data.nb,
+                         participe : false
+                       }) 
+                    })
+                    
+                  })
+                  
+              })
+          }) 
+    }
+    else{
+      var request = new Request ('http://localhost:2100/prjt/JeParticipe',{
+        method:'POST',
+        headers : new Headers({"Content-type" : "application/json"}),
+        body : JSON.stringify(this.state)
+        });
+        const self = this;
+        fetch(request)
+          .then(function(response){
+              response.json()
+              .then(function(data){
+                
+                var request = new Request ('http://localhost:2100/prjt/NbParticipant',{
+                  method:'POST',
+                  headers : new Headers({"Content-type" : "application/json"}),
+                  body : JSON.stringify(self.state)
+                });
+                
+                fetch(request)
+                  .then(function(response){
+                    response.json()
+                      .then(function(data){
+                       self.setState({
+                         nbParticipe : data.nb,
+                         participe : true
+                       }) 
+                    })
+                  })
+                  
+              })
+          }) 
+    }
+    
+
+  }
+
+  render(){
+    return (
+      
+      <li> 
+          <time dateTime={this.state.date}>
+            <span className="day">{this.state.jour}</span>
+            <span className="month">{this.state.mois}</span>
+            <span className="year">{this.state.annee}</span>
+            <span className="time">ALL DAY</span>
+          </time>
+ 
+          <div className="info">
+            <h2 className="title">{this.state.titre}</h2>
+            <p className="desc">{this.state.description}</p>
+            <ul>
+              {this.state.aLike && <li style={ {width : "33%"} }  >{this.state.aime} <span className="fa fa-heart" aria-hidden="true" onClick={this.DislikeThis.bind(this)} ></span></li>}
+              { this.state.pasLike && <li style={ {width : "33%"} }  >{this.state.aime} <span className="fa fa-heart-o" aria-hidden="true" onClick={this.likeThis.bind(this)} ></span></li>}
+              <li style={ {width : "34%"} }> {this.state.nbParticipe} <span className="fa fa-user" aria-hidden="true" onClick={this.Participethis.bind(this)} ></span></li>
+              <li style={ {width : "33%"}}> {this.state.nbCom} <span className="fa fa-comment"  aria-hidden="true" onClick={this.affichelesComm.bind(this)}></span></li>
+            </ul>
+          </div> 
+         {this.state.afficherComm && <CommEvent id= {this.state.id} idUtil= {this.state.idUtil}/> } 
+      </li>
+       
+      
+      
+      
+    );
+  }
+}
 class Event extends React.Component{
   constructor(props){
     super(props);
     this.state={
-      friends:this.props.friend,
-      id:this.props.id
+      friends:[],
+      id:this.props.id,
+      EventPre : false,
+      event : []
     }
+    
   }
 
-  
-   
+componentDidMount() {
+    var request = new Request ('http://localhost:2100/prjt/Listeami',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+     fetch(request)
+    .then(function(response){
+      response.json()
+      .then(function(data){
+        var request = new Request ('http://localhost:2100/prjt/ListEventfriend',{
+          method:'POST',
+          headers : new Headers({"Content-type" : "application/json"}),
+          body : JSON.stringify(data)
+        });
+        fetch(request)
+            .then(function(response){
+              response.json()
+                .then(function(data){
+                  self.setState({
+                  EventPre : data.EventPre,
+                  event : data.Event
+                  })
+          
+                 })
+              })
+        
+      })
+
+    });
+  }
+
   render(){
-    
-    return(<div>
-      <h1>Liste Event</h1>
-    </div>);
+    const listItems = this.state.event.map((number) =>
+    <ListEvent name = {this.props.id} key = {number} id={number}/>
+  );
+    return( 
+            <ul className="event-list">
+                {listItems}
+            </ul>
+      
+            
+    );
   }
 }
+function Map() {
+  return (
+    <GoogleMap 
+      defaultZoom={10}
+      defaultCenter={{ lat: 43.927479, lng: 2.148060 }}
+    >
 
+      <Marker position={{ lat: 43.90000, lng: 2.0000 }} />
+    </GoogleMap>
+
+  );
+}
+const WrappedMap = withScriptjs(withGoogleMap(Map));
 class Carte extends React.Component{
   constructor(props){
     super(props);
@@ -30,8 +571,22 @@ class Carte extends React.Component{
       liste:[]
     }
   }
+   
+
   render(){
-    return(<h1>Carte</h1>);
+   
+    
+    return(<div className="box-controller" style={{width: '100vw', height: '100vh'}} >
+<div style={{ width: "100%", height: "100%" }}>
+            <WrappedMap googleMapURL={`https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key=AIzaSyCUtqzInZ_IlYg8kFoATjV5tjNtzrVtiEs`}
+            loadingElement={<div style={{height: '100%'}} />}
+            containerElement={<div style={{height: '100%'}} />}
+            mapElement={<div style={{height: '100%'}} />}
+
+            />
+        </div>
+    </div>
+    );
   }
   
 }
@@ -40,23 +595,503 @@ class Aime extends React.Component{
   constructor(props){
     super(props);
     this.state={
+      id : this.props.id,
       liste:[]
     }
+    
+  }
+  componentDidMount(){
+    var request = new Request ('http://localhost:2100/prjt/UtilLike',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+
+    const self = this;
+    fetch(request)
+        .then(function(response){
+          response.json()
+        .then(function(data){
+         console.log(data.liste);
+          self.setState({
+            liste : data.liste
+          })
+        })
+    })
+
+  }
+  eventornews(elem){
+    if((elem[2].localeCompare("event"))==0){
+      return(<ListEvent name = {this.props.id} key = {+elem[0]} id={elem[1]}/>);
+    }
+    else{
+      return(<ListNews name = {this.props.id} key = {+elem[0]} id={elem[1]}/>);
+    }
+
   }
   render(){
-    return(<h1>Liste Aime</h1>);
+    const listItems = this.state.liste.map((number) =>
+    
+      this.eventornews(number)
+    
+  );
+    return( <ul className="event-list">
+          {listItems}
+        </ul>);
+  }
+}
+
+class LisComNew extends React.Component{
+  constructor(props){
+    super(props)
+    this.state = {
+      idUtil : this.props.idUtil,
+      idEvent : this.props.idevent,
+      idComen : this.props.idCom,
+      pseudo : "",
+      decription : "",
+      date:"",
+      heure:""
+    }
+  }
+
+  componentDidMount(){
+    var request = new Request ('http://localhost:2100/prjt/LeCommNew',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+        .then(function(response){
+          response.json()
+        .then(function(data){
+         self.setState({
+          pseudo : data.info.pseudo,
+          description : data.info.commentaire,
+          date : data.info.datec.substring(0, 10).split(":")[0],
+          heure: data.info.heurec.split(".")[0]
+        }) 
+          
+        })
+    })
+
+  }
+
+  render(){
+    return (
+      <div className="media">
+          
+        
+          <div className="media-body">
+            <h4 className="media-heading user_name">{this.state.pseudo}</h4>
+              {this.state.description}
+              
+          </div>
+          <p className="pull-left"><small>{this.state.date}:{this.state.heure}</small></p>
+      </div>
+    )
+  }
+}
+
+class CommNew extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      idUtil:this.props.idUtil,
+      id: this.props.id,
+      Commentaire : [],
+      nbCom : null,
+      write:"",
+      newCommId:""
+    }
+    
+  }
+  componentDidMount(){
+    var request = new Request ('http://localhost:2100/prjt/NbCommNew',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+        .then(function(response){
+          response.json()
+        .then(function(data){
+          self.setState({
+            nbCom : data.nbComment,
+            Commentaire: data.liste
+          }) 
+        })
+    })
+}
+
+  
+
+AjoutComm= e=>{
+  e.preventDefault() ;
+  var request = new Request ('http://localhost:2100/prjt/AjoutComm',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+        .then(function(response){
+          response.json()
+        .then(function(data){
+          if(data.message==1){
+            var request = new Request ('http://localhost:2100/prjt/IdComm',{
+              method:'POST',
+              headers : new Headers({"Content-type" : "application/json"}),
+              body : JSON.stringify(self.state)
+            });
+            fetch(request)
+                .then(function(response){
+                  response.json()
+                .then(function(data){
+                  console.log(data);
+                  self.setState({
+                    newCommId : data.message,
+                    
+                  }) 
+                  var request = new Request ('http://localhost:2100/prjt/AjoutNewComm',{
+                      method:'POST',
+                      headers : new Headers({"Content-type" : "application/json"}),
+                      body : JSON.stringify(self.state)
+                  });
+                  fetch(request)
+                      .then(function(response){
+                          response.json()
+                          .then(function(data){
+                            console.log(data);
+                            var request = new Request ('http://localhost:2100/prjt/NbCommNew',{
+                                method:'POST',
+                                headers : new Headers({"Content-type" : "application/json"}),
+                                body : JSON.stringify(self.state)
+                            });
+    
+                              fetch(request)
+                                .then(function(response){
+                                  response.json()
+                                  .then(function(data){
+                                    self.setState({
+                                        nbCom : data.nbComment,
+                                        Commentaire: data.liste
+                                    }) 
+                                  })
+                                })
+                          })
+                      })
+                    })
+                  })
+          }
+        })
+    })
+}
+
+change = e=>{
+  this.setState({
+    [e.target.id] : e.target.value
+})
+}
+  render(){
+    const listCommentaire =  this.state.Commentaire.map((number) =>
+        
+
+      <LisComNew key ={+number[1]} idCom={number[1]} idUtil = {number[0]}  idevent={this.state.id} estUtil={(+number[0])==(+this.props.idUtil)} />
+    );
+    
+  
+    return ( 
+      <div >
+          <div >
+          <div >
+          <div className="page-header">
+          <h1> <small className="pull-right">{this.state.nbCom} comments</small> Comments </h1>
+          </div>
+          <div className="comments-list">
+            {listCommentaire}
+          </div>
+          <input id="write" type="text" name="Ecrire un commentaire" className="login-input" placeholder="Ecrire un commentaire" onChange={this.change.bind(this)} />
+          <button className="btn btn-link navbar-btn" onClick={this.AjoutComm.bind(this)}> Ajoute Commentaire</button>
+          </div>
+
+          </div>
+
+      </div>
+
+    )
+  }
+}
+class ListNews extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      idUtil : this.props.name,
+      id :  this.props.id,
+      titre : "",
+      description : "",
+      date :"",
+      jour : "",
+      mois:"",
+      annee:"",
+      heure : "",
+      aime : 0,
+      aLike : null,
+      pasLike :null,
+      nbCom : null,
+      lescomm: null,
+      afficherComm:false
+    }
+  }
+  
+  componentDidMount(){
+    
+    var request = new Request ('http://localhost:2100/prjt/newsParid',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+
+    const self = this;
+    fetch(request)
+      .then(function(response){
+        response.json()
+        .then(function(data){
+          var Tabmois = ["Jan","Fev","Mar","Avr","Mai","Juin","Jui","Aout","Sep","Oct","Nov","Dec"];
+          var debut = data.Titre.datep.substring(0, 10).split(":")[0];
+          var day=debut.split("-")[2];
+          var month = Tabmois[+debut.split("-")[1]-1];
+          var year = debut.split("-")[0];
+          var request = new Request ('http://localhost:2100/prjt/NblikeNew',{
+            method:'POST',
+            headers : new Headers({"Content-type" : "application/json"}),
+            body : JSON.stringify(self.state)
+          });
+          fetch(request)
+            .then(function(response){
+              response.json()
+                .then(function(data){
+                 self.setState({
+                   aime : data.nb,
+                   aLike : data.ALike,
+                   pasLike : ! data.ALike
+                 }) 
+                
+                 var request = new Request ('http://localhost:2100/prjt/NbCommNew',{
+                        method:'POST',
+                        headers : new Headers({"Content-type" : "application/json"}),
+                        body : JSON.stringify(self.state)
+                      });
+                      fetch(request)
+                          .then(function(response){
+                            response.json()
+                          .then(function(data){
+                            self.setState({
+                              nbCom : data.nbComment,
+                              lescomm : data.liste
+                            }) 
+                          })
+                      })
+
+              })
+            })
+          self.setState({
+            titre : data.Titre.nomn,
+            description : data.Titre.descriptionn,  
+            jour : day,
+            mois : month,
+            date : debut,
+            annee:year,
+            date : debut
+          })
+            
+          
+        })
+      })
+      
+      
+  }
+
+  DislikeThis (){
+
+      var request = new Request ('http://localhost:2100/prjt/DelikeNew',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+      });
+      const self = this;
+      fetch(request)
+        .then(function(response){
+            response.json()
+            .then(function(data){
+              
+              var request = new Request ('http://localhost:2100/prjt/NblikeNew',{
+                method:'POST',
+                headers : new Headers({"Content-type" : "application/json"}),
+                body : JSON.stringify(self.state)
+              });
+              
+              fetch(request)
+                .then(function(response){
+                  response.json()
+                    .then(function(data){
+                      var request = new Request ('http://localhost:2100/prjt/DelikeNew2',{
+                        method:'POST',
+                        headers : new Headers({"Content-type" : "application/json"}),
+                        body : JSON.stringify(self.state)
+                        });
+                        fetch(request)
+                                .then(function(response){
+                                  response.json()
+                                  .then(function(data){
+                                    console.log(data); 
+                                  })
+                                })
+                     self.setState({
+                       aime : data.nb,
+                       aLike : false,
+                       pasLike : true
+                     }) 
+                  })
+                })
+                
+            })
+        }) 
+  }
+
+  likeThis(){
+    var request = new Request ('http://localhost:2100/prjt/LikeNew',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+      });
+      const self = this;
+      fetch(request)
+        .then(function(response){
+            response.json()
+            .then(function(data){
+              
+              var request = new Request ('http://localhost:2100/prjt/NblikeNew',{
+                method:'POST',
+                headers : new Headers({"Content-type" : "application/json"}),
+                body : JSON.stringify(self.state)
+              });
+              
+              fetch(request)
+                .then(function(response){
+                  response.json()
+                    .then(function(data){
+                      var request = new Request ('http://localhost:2100/prjt/LikeNew2',{
+                        method:'POST',
+                        headers : new Headers({"Content-type" : "application/json"}),
+                        body : JSON.stringify(self.state)
+                        });
+                        fetch(request)
+                                .then(function(response){
+                                  response.json()
+                                  .then(function(data){
+                                    console.log(data); 
+                                  })
+                                })
+                     self.setState({
+                       aime : data.nb,
+                       aLike : true,
+                       pasLike : false
+                      
+                     }) 
+                  })
+                })
+                
+            })
+        }) 
+
+  }
+  affichelesComm(){
+    this.setState({
+      afficherComm: ! this.state.afficherComm
+    })
+  }
+ 
+
+  render(){
+    return (
+      
+      <li> 
+          <time dateTime={this.state.date}>
+            <span className="day">{this.state.jour}</span>
+            <span className="month">{this.state.mois}</span>
+            <span className="year">{this.state.annee}</span>
+            <span className="time">ALL DAY</span>
+          </time>
+ 
+          <div className="info">
+            <h2 className="title">{this.state.titre}</h2>
+            <p className="desc">{this.state.description}</p>
+            <ul>
+              {this.state.aLike && <li style={ {width : "33%"} }  >{this.state.aime} <span className="fa fa-heart" aria-hidden="true" onClick={this.DislikeThis.bind(this)} ></span></li>}
+              { this.state.pasLike && <li style={ {width : "33%"} }  >{this.state.aime} <span className="fa fa-heart-o" aria-hidden="true" onClick={this.likeThis.bind(this)} ></span></li>}
+              <li style={ {width : "33%"}}> {this.state.nbCom} <span className="fa fa-comment"  aria-hidden="true" onClick={this.affichelesComm.bind(this)}></span></li>
+            </ul>
+          </div> 
+         {this.state.afficherComm && <CommNew id= {this.state.id} idUtil= {this.state.idUtil}/> } 
+      </li>
+    );
   }
 }
 
 class Article extends React.Component{
-  constructor(props){
+constructor(props){
     super(props);
     this.state={
-      liste:[]
+      friends:[],
+      id:this.props.id,
+      newsPre : false,
+      news : []
     }
   }
+componentDidMount() {
+    var request = new Request ('http://localhost:2100/prjt/Listeami',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+     fetch(request)
+    .then(function(response){
+      response.json()
+      .then(function(data){
+        var request = new Request ('http://localhost:2100/prjt/ListNewfriend',{
+          method:'POST',
+          headers : new Headers({"Content-type" : "application/json"}),
+          body : JSON.stringify(data)
+        });
+        fetch(request)
+            .then(function(response){
+              response.json()
+                .then(function(data){
+                  self.setState({
+                  newsPre : data.newsPre,
+                  news : data.news
+                  })
+          
+                 })
+              })
+            })
+      });
+  }
   render(){
-    return(<h1>Liste Article</h1>);
+    const listItems = this.state.news.map((number) =>
+    <ListNews name = {this.props.id} key = {number} id={number}/>
+  );
+    return( 
+            <ul className="event-list">
+                {listItems}
+            </ul>
+      
+            
+    );
   }
 }
 
@@ -64,21 +1099,124 @@ class Participe extends React.Component{
   constructor(props){
     super(props);
     this.state={
+      id:this.props.id,
       liste:[]
     }
   }
+  componentDidMount(){
+    var request = new Request ('http://localhost:2100/prjt/ListEventParticipate',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+            .then(function(response){
+              response.json()
+                .then(function(data){
+                  self.setState({
+                  liste : data.Event,
+                  })
+          
+                 })
+              })
+  }
   render(){
-    return(<h1>Liste Participe</h1>);
+    const listItems = this.state.liste.map((number) =>
+    <ListEvent name = {this.props.id} key = {number} id={number}/>
+  );
+    return( 
+            <ul className="event-list">
+                {listItems}
+            </ul>
+      
+            
+    );
   }
 }
+Geocode.setApiKey( "AIzaSyAvHPTZu_MEeaSjDXq9N6jQbqAntnkUzhM" );
+Geocode.enableDebug();
 
 class CreeEvent extends React.Component{
   constructor(props){
     super(props);
+    this.state={
+      id: this.props.id,
+      nom : "",
+      description : "",
+      date : "",
+      heure:"",
+      adresse:"",
+      lat:"",
+      long:""
+
+    }
+  }
+
+  change = e=>{
+    this.setState({
+      [e.target.id] : e.target.value
+    })
+  }
+
+  ajout = e=>{
+    e.preventDefault();
+    Geocode.fromAddress(this.state.adresse).then(
+      response => {
+        const { lat, lng } = response.results[0].geometry.location;
+        console.log(lat,lng);
+        this.setState({
+          lat:lat,
+          long:lng
+        })
+        console.log(this.state.lat);
+      },
+      error => {
+        console.error(error);
+      }
+    );
+    var request = new Request ('http://localhost:2100/prjt/AjoutEvent',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+    fetch(request)
+            .then(function(response){
+              response.json()
+                .then(function(data){
+                  console.log(data.message)
+          
+                 })
+              })
   }
 
   render(){
-    return(<h1>Cree un Event</h1>);
+    return(
+      
+            <form className="well span8">
+        <div className="row">
+          <div className="span3">
+            <label>Nom Event</label> <input id="nom" className="span3" placeholder=
+                "Name Event" type="text" onChange={this.change} /> <label>Date</label>
+                <input id="date" className="span3" placeholder="Quand" type="date" onChange={this.change}/>
+                <label>heure</label> <input id="heure" className="span3" placeholder=
+                "A quelle heure" type="time" onChange={this.change}/> 
+                <label>Adresse</label> <input id="adresse" className="span3" placeholder=
+                "Lieu" type="text" onChange={this.change}/> 
+          </div>
+          <div className="span12">
+                <label>Description</label> 
+                <textarea id="description" className="input-xlarge span5"  name="description"
+                rows="5" onChange={this.change}>
+                </textarea>
+          </div>
+          <button className="btn btn-primary pull-right" onClick={this.ajout.bind(this)}>Send</button>
+        </div>
+    </form>
+
+    
+    );
   }
 }
 
@@ -94,9 +1232,10 @@ class CreeArticle extends React.Component{
 
 class Accueil extends React.Component{
   constructor(props){
+    
     super(props);
     this.state = {
-      friend : this.props.friend,
+      friend : [],
       id:this.props.id,
       estEvent:true,
       estCarte:false,
@@ -109,14 +1248,27 @@ class Accueil extends React.Component{
   }
 
   passEvent (){
-      this.setState({
-        estEvent:true,
-        estCarte:false,
-        estAime:false,
-        estArticle:false,
-        estParticpe:false
-      });
-  }
+    var request = new Request ('http://localhost:2100/prjt/Listeami',{
+      method:'POST',
+      headers : new Headers({"Content-type" : "application/json"}),
+      body : JSON.stringify(this.state)
+    });
+    const self = this;
+     fetch(request)
+    .then(function(response){
+      response.json()
+      .then(function(data){
+        
+        self.setState({friend: data.friends,estEvent:true,
+          estCarte:false,
+          estAime:false,
+          estArticle:false,
+          estParticpe:false});
+        
+      })
+  
+  })
+}
   passCarte (){
     this.setState({
       estEvent:false,
@@ -191,7 +1343,7 @@ class Accueil extends React.Component{
     <div>
         <h1>Accueil</h1>
         <input type="text" placeholder="Recherche tag"/>
-        <nav className="navbar navbar-inverse">
+        <nav className="navbar navbar-dark bg-dark">
           <ul className="nav navbar-nav">
               <div className="container-fluid">
               <button className="btn btn-primary navbar-btn" onClick={this.passCev.bind(this)}>Crée Event</button>
@@ -206,14 +1358,14 @@ class Accueil extends React.Component{
         </nav>
         <div>
               {this.state.estCreeEvent&& <CreeEvent id={this.state.id} />}
-              {this.state.estCreeArticle && <CreeArticle/>}
+              {this.state.estCreeArticle && <CreeArticle id={this.state.id} />}
         </div>
         <div>
               {this.state.estEvent&& <Event id={this.state.id} friend = {this.state.friend} />}
               {this.state.estCarte && <Carte/>}
-              {this.state.estAime&& <Aime/>}
-              {this.state.estArticle && <Article/>}
-              {this.state.estParticpe && <Participe/>}
+              {this.state.estAime&& <Aime id={this.state.id}/>}
+              {this.state.estArticle && <Article id={this.state.id}/>}
+              {this.state.estParticpe && <Participe id={this.state.id}/>}
         </div>
     </div>);
   }
@@ -528,16 +1680,30 @@ class Param extends React.Component{
   }
 }
 
+class Profil extends React.Component{
+  constructor(props){
+    super(props);
+  }
+
+  render(){
+    return (<div>
+        <h1>Profil</h1>
+        <div >
+        </div>
+        
+    </div>)
+  }
+}
+
 class Menu extends React.Component {
     constructor(props) {
       super(props);
+      
       this.state = {
-        friend : this.props.friend,
         EstStatistique : false,
         EstAccueil : true,
         EstParametre: false,
-        name : this.props.name,
-        id:this.props.id
+        
       };
       
     }
@@ -579,6 +1745,7 @@ class Menu extends React.Component {
     deco = e=>{
       const cookies = new Cookies();
       cookies.remove("user",{ path: '/PageConnecte' });
+      cookies.remove("Pgm",{ path: '/PageConnecte' });
       history.push("/PageAccueil");
       window.location.reload();
 
@@ -595,7 +1762,7 @@ class Menu extends React.Component {
       return (
         <div className="container-fluid">
           <div className="row">
-            <div className="col-sm-3" >
+            <div className="col-sm-2" >
               <nav className="nav flex-column">
                 <button type="button" className="btn btn-link" onClick={this.passAcc.bind(this)}>Accueil</button>
                 <button type="button" className="btn btn-link" onClick={this.passStat.bind(this)}>Statistique</button>
@@ -604,12 +1771,12 @@ class Menu extends React.Component {
               </nav>
             </div>
             <div className = "col-md-6">
-              {EstAccueil && <Accueil id={this.state.id} friend = {this.state.friend} />}
-              {EstStatistique && <Stat id={this.state.id} />}
-              {EstParametre && <Param id = {this.state.id} />}
+              {EstAccueil && <Accueil id={this.props.id} friend = { this.props.friend} />}
+              {EstStatistique && <Stat id={this.props.id} />}
+              {EstParametre && <Param id = {this.props.id} />}
             </div>
             <div className="col-sm-3">
-                <h1>Profil</h1>
+                <Profil name = {this.props.name} id = {this.props.id}/>
             </div>
           </div>
         </div>
@@ -625,7 +1792,7 @@ class PageConnecte extends React.Component{
     super(props)
     try{
       const cookies = new Cookies();
-
+      
       this.state={
         liste:[],
         ident : cookies.get("user").split(" ")[0],
@@ -637,6 +1804,7 @@ class PageConnecte extends React.Component{
       }
       
       
+      
     }
     catch(err){
       history.push("/PageAccueil");
@@ -646,27 +1814,9 @@ class PageConnecte extends React.Component{
     
   }
 
-  componentDidMount() {
-    var request = new Request ('http://localhost:2100/prjt/Listeami',{
-      method:'POST',
-      headers : new Headers({"Content-type" : "application/json"}),
-      body : JSON.stringify(this.state)
-    });
-    const self = this;
-     fetch(request)
-    .then(function(response){
-      response.json()
-      .then(function(data){
-        console.log(data.friends);
-        self.setState({liste: data.friends});
-        
-      })
-
-    });
-   
-  }
 
   render(){
+    
     const affichemenu = ()=>{
       return (<Menu friend = {this.state.liste} name={this.state.ident} id={this.state.id}/>)
     }
@@ -674,7 +1824,7 @@ class PageConnecte extends React.Component{
       <Router>
       <div>
         <Route exact path="/PageConnecte" component={affichemenu}></Route>
-        <Route exact path="/PageAccueil" component={PageAccueil}></Route>
+        <Route exact path="/" component={PageAccueil}></Route>
       </div>
     </Router>
       

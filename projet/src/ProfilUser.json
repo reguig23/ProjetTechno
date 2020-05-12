@@ -1,0 +1,14 @@
+{
+    "fruits": [
+      { "id": 3,
+        "mangues": 4,
+        "pommes": null
+      },
+      { "panier": true }
+    ],
+    "legumes": {
+        "patates": "amandine",
+        "poireaux": false
+      },
+      "viandes": ["poisson","poulet","boeuf"]
+   }
